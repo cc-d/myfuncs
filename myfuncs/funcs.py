@@ -4,7 +4,7 @@ import time
 import inspect
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar, Union
 
 import logging
 
@@ -23,9 +23,8 @@ def get_asctime() -> str:
     now = datetime.now()
     return now.strftime(f"%Y-%m-%d %H:%M:%S")
 
-
 def logf(
-    level: Optional[int] = logging.DEBUG,
+    level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,
     log_return: bool = True,
     max_vlen: int = 1000,
@@ -36,7 +35,7 @@ def logf(
     and return value of a function using a specified log level.
 
     Args:
-        level (int, optional): The log level to use for logging. Defaults to logging.DEBUG.
+        level (Union[int, str], optional): The log level to use for logging. Defaults to logging.DEBUG.
         log_args (bool, optional): Should the function arguments be logged? Defaults to True.
         log_return (bool, optional): Should function return be logged? Defaults to True.
         max_vlen (int, optional): Maximum length of the logged arguments and return values. Defaults to 1000.
@@ -45,6 +44,10 @@ def logf(
     Returns:
         Callable[[T], T]: The wrapped function.
     """
+
+    # Convert log level to integer if provided as string
+    if isinstance(level, str):
+        level = logging.getLevelName(level.upper())
 
     def decorator(func: T) -> T:
         @wraps(func)
