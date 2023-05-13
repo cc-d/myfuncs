@@ -44,10 +44,10 @@ def logf(
     Returns:
         Callable[[T], T]: The wrapped function.
     """
-
-    # Convert log level to integer if provided as string
     if isinstance(level, str):
-        level = logging.getLevelName(level.upper())
+        level_int = logging.getLevelName(level.upper())
+    else:
+        level_int = int(level)
 
     def decorator(func: T) -> T:
         @wraps(func)
@@ -61,7 +61,7 @@ def logf(
             else:
                 arg_str = f"{func.__name__}()"
 
-            logger.log(level, arg_str)
+            logger.log(level_int, arg_str)
 
             # Execute the function
             result = func(*args, **kwargs)
@@ -86,7 +86,7 @@ def logf(
 
             if log_message is not None:
                 # Log the message using the specified level.
-                logger.log(level, log_message)
+                logger.log(level_int, log_message)
 
             return result
         return wrapper
