@@ -1,6 +1,6 @@
 # myfuncs
 
-This Python package, `myfuncs`, is a collection of personal utility functions created by Cary Carter. It is primarily intended for Cary's personal use, providing easy access to frequently used functions across different projects and systems.
+This Python package, `myfuncs`, is a collection of personal utility functions created by myself. It is primarily intended for my personal use, providing easy access to frequently used functions across different projects and systems.
 
 ## Installation
 
@@ -76,5 +76,3 @@ OK
 This output indicates that all the tests have passed.
 
 ---
-
-With these updates, the `README.md` file now includes information on how to run the tests for your `myfuncs` package.
