@@ -13,17 +13,6 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=Callable[..., Any])
 
 
-def get_asctime() -> str:
-    """Returns the current time in the same format as logging %(asctime)s
-
-
-    Returns:
-        str: current asctime
-    """
-    now = datetime.now()
-    return now.strftime(f"%Y-%m-%d %H:%M:%S")
-
-
 def trunc_str(string: str, max_length: int) -> str:
     """
     Truncates a string if its length exceeds the specified maximum length.
@@ -41,12 +30,11 @@ def trunc_str(string: str, max_length: int) -> str:
     return string
 
 
-
 def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,
     log_return: bool = True,
-    max_vlen: int = 1000,
+    max_str_len: int = 1000,
     measure_time: bool = True
 ) -> Callable[[T], T]:
     """
@@ -57,7 +45,7 @@ def logf(
         level (Union[int, str], optional): The log level to use for logging. Defaults to logging.DEBUG.
         log_args (bool, optional): Should the function arguments be logged? Defaults to True.
         log_return (bool, optional): Should function return be logged? Defaults to True.
-        max_vlen (int, optional): Maximum length of the logged arguments and return values. Defaults to 1000.
+        max_str_len (int, optional): Maximum length of the logged arguments and return values. Defaults to 1000.
         measure_time (bool, optional): Should the function execution time be measured? Defaults to True.
 
     Returns:
@@ -76,7 +64,7 @@ def logf(
 
             # Log function arguments if required
             if log_args:
-                arg_str = f"{func.__name__}() | {str(args)[:max_vlen]} {str(kwargs)[:max_vlen]}"
+                arg_str = f"{func.__name__}() | {str(args)[:max_str_len]} {str(kwargs)[:max_str_len]}"
             else:
                 arg_str = f"{func.__name__}()"
 
@@ -93,10 +81,10 @@ def logf(
 
             # Log the return value and execution time if required
             if log_return and measure_time:
-                result_str = trunc_str(str(result), max_vlen)
+                result_str = trunc_str(str(result), max_str_len)
                 log_message = f"{func.__name__}() {exec_time_str} | {result_str}"
             elif log_return:
-                result_str = trunc_str(str(result), max_vlen)
+                result_str = trunc_str(str(result), max_str_len)
                 log_message = f"{func.__name__}() | {result_str}"
             elif measure_time:
                 log_message = f"{func.__name__}() {exec_time_str}"
@@ -110,6 +98,17 @@ def logf(
             return result
         return wrapper
     return decorator
+
+@logf()
+def get_asctime() -> str:
+    """Returns the current time in the same format as logging %(asctime)s
+
+
+    Returns:
+        str: current asctime
+    """
+    now = datetime.now()
+    return now.strftime(f"%Y-%m-%d %H:%M:%S")
 
 
 @logf()

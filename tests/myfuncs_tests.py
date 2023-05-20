@@ -69,10 +69,10 @@ class TestLogF(unittest.TestCase):
         self.assertEqual(logger_mock.log.call_count, 1)
 
     @logf()
-    def test_logf_max_vlen(self):
+    def test_logf_max_str_len(self):
         logger_mock = MagicMock()
 
-        @logf(level=logging.DEBUG, log_args=True, log_return=True, max_vlen=10, measure_time=True)
+        @logf(level=logging.DEBUG, log_args=True, log_return=True, max_str_len=10, measure_time=True)
         def example_func(a, b):
             return "abcde" * 1000  # Return a very long string
 
