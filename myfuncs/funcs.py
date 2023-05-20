@@ -23,6 +23,25 @@ def get_asctime() -> str:
     now = datetime.now()
     return now.strftime(f"%Y-%m-%d %H:%M:%S")
 
+
+def trunc_str(string: str, max_length: int) -> str:
+    """
+    Truncates a string if its length exceeds the specified maximum length.
+    If the string is truncated, it appends '...' to indicate the truncation.
+
+    Args:
+        string (str): The string to truncate.
+        max_length (int): The maximum length of the truncated string.
+
+    Returns:
+        str: The truncated string.
+    """
+    if len(string) > max_length:
+        return string[:max_length - 3] + "..."
+    return string
+
+
+
 def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,
@@ -74,10 +93,10 @@ def logf(
 
             # Log the return value and execution time if required
             if log_return and measure_time:
-                result_str = str(result)[:max_vlen]
+                result_str = trunc_str(str(result), max_vlen)
                 log_message = f"{func.__name__}() {exec_time_str} | {result_str}"
             elif log_return:
-                result_str = str(result)[:max_vlen]
+                result_str = trunc_str(str(result), max_vlen)
                 log_message = f"{func.__name__}() | {result_str}"
             elif measure_time:
                 log_message = f"{func.__name__}() {exec_time_str}"
