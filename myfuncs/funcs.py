@@ -1,7 +1,13 @@
+"""
+legacy file, kept around for off chance somebody is relying
+on backwards compatability, all functionality should go in __init__.py
+"""
 import os
 import re
 import time
 import inspect
+import random
+import string
 from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Optional, TypeVar, Union
@@ -11,6 +17,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=Callable[..., Any])
+
+ASCII_CHARS = string.ascii_letters + string.ascii_lowercase + string.ascii_uppercase
 
 
 def trunc_str(string: str, max_length: int) -> str:
@@ -98,6 +106,24 @@ def logf(
             return result
         return wrapper
     return decorator
+
+
+@logf()
+def ran_str(length: int) -> str:
+    """ Returns a string of random ascii characters of n length
+
+    Args:
+        length (int): length of returned str
+
+    Returns:
+        str: random char string of n length
+    """
+    s = ''
+    for i in range(0, length):
+        s += random.choice(ASCII_CHARS)
+    return s
+
+
 
 @logf()
 def get_asctime() -> str:

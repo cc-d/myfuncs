@@ -1,78 +1,61 @@
 # myfuncs
 
-This Python package, `myfuncs`, is a collection of personal utility functions created by myself. It is primarily intended for my personal use, providing easy access to frequently used functions across different projects and systems.
+`myfuncs` is a Python package that provides a set of utility functions designed to streamline your code and enhance efficiency across various projects and platforms.
 
 ## Installation
 
-You can install the package via pip:
+You can install `myfuncs` using pip:
 
 ```bash
 pip install myfuncs
 ```
 
-
 ## Usage
 
-Here's an example of how to use the functions provided by the `myfuncs` package:
+
+The functions in `myfuncs` can be imported as follows:
 
 ```python
-from myfuncs import valid_uuid, logf
+from myfuncs import runcmd
 
-# Example usage of valid_uuid
-print(valid_uuid("550e8400-e29b-41d4-a716-446655440000"))  # True
-
-# Example usage of logf
-import logging
-
-@logf(level=logging.DEBUG)
-def example_function(x):
-    return x * 2
-
-print(example_function(4))  # 8
+# Example usage of the runcmd function
+result = runcmd("ls -l")
+print("Output:", result)
 ```
 
-You can update your `README.md` file to include information about the tests as follows:
+# Functions
 
----
+## `runcmd()`
+
+Here, `runcmd` is a utility function that runs shell commands with optional output capture. It accepts additional arguments to customize the command execution process. This function is just one example of the utilities provided by `myfuncs`.
+
+The `runcmd` function's parameters are:
+
+- `cmd` (str): The command to be executed.
+- `output` (bool, optional): Specifies whether to capture and return the output of the command. Defaults to True.
+- `*args`: Additional positional arguments passed to `subprocess.run()`.
+- `**kwargs`: Additional keyword arguments passed to `subprocess.run()`.
+
+----
 
 ## Running Tests
 
-To run the tests for the `myfuncs` package, follow these steps:
-
-1\. Navigate to the root directory of the `myfuncs` package in your terminal.
-
-2\. Make sure you have the necessary dependencies installed in your virtual environment.
-
-3\. Run the tests by executing the following command:
+The `myfuncs` package includes a test suite to verify the operation of its functions. To run the tests:
 
 ```bash
-
-python -m unittest tests.myfuncs_tests
-
+python -m unittest tests/*.py
 ```
 
-If the tests run successfully, you should see output similar to the following:
+This command executes all Python files (`*.py`) in the `tests` directory. Successful completion signifies that the functions are working as intended.
 
-```
+## Documentation
 
-..DEBUG:myfuncs.funcs:valid_uuid() | ('123e4567-e89b-12d3-a456-426614174000',) {}
+In-depth documentation can be accessed in the source code within docstrings. For future developments and detailed examples, please refer to the `myfuncs` [GitHub repository](https://github.com/cc-d/myfuncs).
 
-DEBUG:myfuncs.funcs:valid_uuid() 0.00018s | True
+## Contributing
 
-DEBUG:myfuncs.funcs:valid_uuid() | ('123e4567-e89b-12d3-a456-42661417400',) {}
+Contributions to `myfuncs` are welcomed. If you encounter any issues or have suggestions for improvements, please open an issue on the [GitHub repository](https://github.com/cc-d/myfuncs).
 
-DEBUG:myfuncs.funcs:valid_uuid() 0.00002s | False
+## License
 
-.
-
-----------------------------------------------------------------------
-
-Ran 3 tests in 0.001s
-
-OK
-
-```
-
-This output indicates that all the tests have passed.
-
----
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/cc-d/myfuncs/blob/main/LICENSE) file for more details.

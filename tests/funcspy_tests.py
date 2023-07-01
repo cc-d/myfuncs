@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 sys.path.insert(0, str(Path(__file__).parent.parent))  # Add the parent directory of tests to the system path
 
-from myfuncs.funcs import logf, get_asctime, valid_uuid, trunc_str
+from myfuncs.funcs import *
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -33,6 +33,16 @@ class TestMyFuncs(unittest.TestCase):
         self.assertEqual(trunc_str(s, 7), "abcdefg")
         self.assertEqual(trunc_str(s, 10), "abcdefg")
         self.assertEqual(trunc_str(s, 0), "abcd...")
+
+    @logf()
+    def test_ran_str(self):
+        s1, s2 = ran_str(32), ran_str(32)
+        self.assertEqual(len(s1), 32)
+        self.assertEqual(len(s1), len(s2))
+        self.assertNotEqual(s1, s2)
+        s3 = ran_str(16)
+        self.assertEqual(len(s3), 16)
+
 
 class TestLogF(unittest.TestCase):
     @logf()
