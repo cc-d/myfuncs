@@ -38,6 +38,7 @@ def trunc_str(string: str, max_length: int) -> str:
     return string
 
 
+# legacy use the logfunc pip package instead
 def logf(
     level: Optional[Union[int, str]] = logging.DEBUG,
     log_args: bool = True,

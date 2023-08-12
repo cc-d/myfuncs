@@ -36,6 +36,14 @@ The `runcmd` function's parameters are:
 - `*args`: Additional positional arguments passed to `subprocess.run()`.
 - `**kwargs`: Additional keyword arguments passed to `subprocess.run()`.
 
+## `is_jwt_str()`
+
+Returns True if a str is a valid encoded jwt string else False
+
+## `nlprint()`
+
+Identical to print but with an additional print()
+
 ----
 
 ## Running Tests

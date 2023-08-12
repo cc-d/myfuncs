@@ -5,11 +5,14 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
-sys.path.insert(0, str(Path(__file__).parent.parent))  # Add the parent directory of tests to the system path
+sys.path.insert(
+    0, str(Path(__file__).parent.parent)
+)  # Add the parent directory of tests to the system path
 
-from myfuncs.funcs import *
+from myfuncs.funcs import logf, get_asctime, valid_uuid, trunc_str, ran_str
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 class TestMyFuncs(unittest.TestCase):
     @logf()
@@ -63,7 +66,6 @@ class TestLogF(unittest.TestCase):
         self.assertTrue(log_message.startswith("example_func()"))
         self.assertTrue(log_message.endswith(" | 3"))
 
-
     @logf()
     def test_logf_no_args_no_return_no_time(self):
         logger_mock = MagicMock()
@@ -82,12 +84,20 @@ class TestLogF(unittest.TestCase):
     def test_logf_max_str_len(self):
         logger_mock = MagicMock()
 
-        @logf(level=logging.DEBUG, log_args=True, log_return=True, max_str_len=10, measure_time=True)
+        @logf(
+            level=logging.DEBUG,
+            log_args=True,
+            log_return=True,
+            max_str_len=10,
+            measure_time=True,
+        )
         def example_func(a, b):
             return "abcde" * 1000  # Return a very long string
 
         with unittest.mock.patch('myfuncs.funcs.logger', logger_mock):
-            result = example_func("abcde" * 1000, 2)  # Pass a very long string as an argument
+            result = example_func(
+                "abcde" * 1000, 2
+            )  # Pass a very long string as an argument
 
         self.assertEqual(result, "abcde" * 1000)
         self.assertEqual(logger_mock.log.call_count, 2)
