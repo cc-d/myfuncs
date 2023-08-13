@@ -20,6 +20,7 @@ from logfunc import logf
 import random
 
 ALPHANUMERIC_CHARS = string.ascii_letters + string.digits
+USERNAME_ASCII_CHARS = ALPHANUMERIC_CHARS + '_-'
 
 
 def nlprint(*args, **kwargs) -> None:
@@ -211,3 +212,49 @@ def objinfo(obj: Any):
         nlprint('-' * terminal_width)
 
     print_info()
+
+
+def default_repr(obj: Any) -> str:
+    """
+    Return a string representation of a custom Python object.
+
+    This representation is constructed such that the object can be
+    reconstructed from the returned string.
+
+    Args:
+        obj (Any): The input Python object.
+
+    Returns:
+        str: The string representation of the object.
+    """
+    # If the object has a __dict__ attribute, use that
+    if hasattr(obj, '__dict__'):
+        attributes = ', '.join(
+            f"{key}={repr(value)}"
+            for key, value in vars(obj).items()
+            if not callable(value) and not key.startswith("_")
+        )
+    # Otherwise, use dir() to gather potential attributes
+    else:
+        if isinstance(obj, int):
+            return 'int(%s)' % obj
+        elif isinstance(obj, float):
+            return 'float(%s)' % obj
+        elif isinstance(obj, str):
+            return 'str(%s)' % obj
+        elif isinstance(obj, list):
+            return str(obj)
+        elif isinstance(obj, dict):
+            return str(obj)
+        elif isinstance(obj, set):
+            return 'set(%s)' % obj
+        elif isinstance(obj, tuple):
+            return str(obj)
+
+        attributes = ', '.join(
+            f"{attr}={repr(getattr(obj, attr))}"
+            for attr in dir(obj)
+            if not callable(getattr(obj, attr)) and not attr.startswith("_")
+        )
+
+    return f"{obj.__class__.__name__}({attributes})"

@@ -1,11 +1,11 @@
 import unittest
 from subprocess import CompletedProcess
 import sys
-from pathlib import Path
 import os
 from unittest.mock import patch, MagicMock, call
 from os.path import dirname, abspath
-from typing import *
+from typing import Generator
+
 
 MFROOT = str(dirname(dirname(abspath(__file__))))
 if MFROOT not in sys.path:
@@ -20,6 +20,7 @@ from myfuncs import (
     get_terminal_width,
     print_middle,
     print_columns,
+    default_repr,
     ALPHANUMERIC_CHARS,
 )
 
@@ -73,22 +74,22 @@ class TestGetTerminalWidth(unittest.TestCase):
 
 
 class TestPrintColumns(unittest.TestCase):
+    items = [
+        'a',
+        'aa',
+        'aaa',
+        'aaaa',
+        'aaaaa',
+        'aaaaaa',
+        'aaaaaaa',
+        'aaaaaaaa',
+        'aaaaaaaaa',
+    ]
+
     @patch("myfuncs.get_terminal_width", return_value=80)
     @patch("builtins.print")
     def test_print_columns_basic(self, mock_print, mock_get_terminal_width):
-        items = [
-            'a',
-            'aa',
-            'aaa',
-            'aaaa',
-            'aaaaa',
-            'aaaaaa',
-            'aaaaaaa',
-            'aaaaaaaa',
-            'aaaaaaaaa',
-        ]
-        print_columns(items)
-
+        print_columns(self.items)
         mock_print.assert_called_with(
             'aaaaaaaa   aaaaaaaaa'
         )  # This verifies the last call to print function
@@ -98,18 +99,7 @@ class TestPrintColumns(unittest.TestCase):
     def test_print_columns_small_terminal(
         self, mock_print, mock_get_terminal_width
     ):
-        items = [
-            'a',
-            'aa',
-            'aaa',
-            'aaaa',
-            'aaaaa',
-            'aaaaaa',
-            'aaaaaaa',
-            'aaaaaaaa',
-            'aaaaaaaaa',
-        ]
-        print_columns(items)
+        print_columns(self.items)
 
         mock_print.assert_called_with(
             'aaaaaaa    aaaaaaaa   aaaaaaaaa'
@@ -118,8 +108,7 @@ class TestPrintColumns(unittest.TestCase):
     @patch("myfuncs.get_terminal_width", return_value=80)
     @patch("builtins.print")
     def test_print_columns_sorted(self, mock_print, mock_get_terminal_width):
-        items = ['b', 'a', 'c']
-        print_columns(items)
+        print_columns(['b', 'a', 'c'])
 
         mock_print.assert_called_with(
             'a  b  c'
@@ -147,6 +136,46 @@ class TestRanStr(unittest.TestCase):
         result = ranstr(5, 10)
         self.assertIsInstance(result, str)
         self.assertTrue(5 <= len(result) <= 10)
+
+
+class TestCustomReprFunction(unittest.TestCase):
+    class MyClass:
+        def __init__(self, a, b):
+            self.a = a
+            self.b = b
+
+        def method(self):
+            pass
+
+    class AnotherClass:
+        c = "class attribute"
+
+        def __init__(self, x):
+            self.x = x
+
+    def test_simple_class(self):
+        instance = self.MyClass(1, "test")
+        representation = default_repr(instance)
+        expected_repr = "MyClass(a=1, b='test')"
+        self.assertEqual(representation, expected_repr)
+
+    def test_class_with_class_attribute(self):
+        instance = self.AnotherClass(5)
+        representation = default_repr(instance)
+        expected_repr = "AnotherClass(x=5)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_builtin_type_without_dict(self):
+        value = 123
+        representation = default_repr(value)
+        expected_repr = "int(123)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_list(self):
+        lst = [1, 2, 3]
+        representation = default_repr(lst)
+        expected_repr = "[1, 2, 3]"
+        self.assertEqual(representation, expected_repr)
 
 
 if __name__ == '__main__':
