@@ -3,6 +3,7 @@ import subprocess as subproc
 import sys
 import os
 import string
+from json import loads, dumps
 from typing import (
     Dict,
     List,
@@ -16,7 +17,7 @@ from typing import (
     Callable,
     Optional,
 )
-from pprint import pformat
+
 import random
 
 ALPHANUMERIC_CHARS = string.ascii_letters + string.digits
@@ -214,31 +215,35 @@ def objinfo(obj: Any):
     print_info()
 
 
+def recursive_json(obj):
+    result = {}
+    for k, v in obj.__dict__.items():
+        if hasattr(v, '__dict__'):
+            result[k] = recursive_json(v)
+        else:
+            result[k] = v
+    return result
+
+
 def default_repr(
-    obj: Any, transform: Optional[Callable] = None, *args, **kwargs
+    obj: Any,
+    transform: Optional[Callable] = None,
+    json: bool = False,
+    *args,
+    **kwargs,
 ) -> str:
-    """
-    Return a string representation of a custom Python object.
+    if json and hasattr(obj, '__dict__'):
+        return dumps(dict(recursive_json(obj)), indent=2, *args, **kwargs)
 
-    This representation is constructed such that the object can be
-    reconstructed from the returned string.
-
-    Args:
-        obj (Any): The input Python object.
-        transform (Optional[Callable]): A function that will return the repr
-            string with modifications. *args/**kwargs will be passed to this function.
-
-    Returns:
-        str: The string representation of the object.
-    """
-    # If the object has a __dict__ attribute, use that
     if hasattr(obj, '__dict__'):
         attributes = ', '.join(
-            f"{key}={repr(value)}"
-            for key, value in vars(obj).items()
+            f"{key}={value!r}"
+            if not hasattr(value, '__dict__')
+            else f"{key}={default_repr(value)}"
+            for key, value in obj.__dict__.items()
             if not callable(value) and not key.startswith("_")
         )
-    # Otherwise, use dir() to gather potential attributes
+        return f"{obj.__class__.__name__}({attributes})"
     else:
         if isinstance(obj, int):
             return 'int(%s)' % obj
@@ -252,11 +257,9 @@ def default_repr(
             return str(obj)
 
         attributes = ', '.join(
-            f"{attr}={repr(getattr(obj, attr))}"
+            f"{attr}={getattr(obj, attr)!r}"
             for attr in dir(obj)
             if not callable(getattr(obj, attr)) and not attr.startswith("_")
         )
 
-    if transform is not None:
-        return transform(self, *args, **kwargs)
     return f"{obj.__class__.__name__}({attributes})"

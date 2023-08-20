@@ -177,6 +177,56 @@ class TestCustomReprFunction(unittest.TestCase):
         expected_repr = "[1, 2, 3]"
         self.assertEqual(representation, expected_repr)
 
+    def test_nested_class(self):
+        class Nested:
+            def __init__(self, y):
+                self.y = y
+
+        instance = self.MyClass(1, Nested("inner"))
+        representation = default_repr(instance)
+        expected_repr = "MyClass(a=1, b=Nested(y='inner'))"
+        self.assertEqual(representation, expected_repr)
+
+    def test_set(self):
+        st = {1, 2, 3}
+        representation = default_repr(st)
+        expected_repr = "set({1, 2, 3})"
+        self.assertEqual(representation, expected_repr)
+
+    def test_float(self):
+        value = 123.45
+        representation = default_repr(value)
+        expected_repr = "float(123.45)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_tuple(self):
+        tpl = (1, 2, 3)
+        representation = default_repr(tpl)
+        expected_repr = "(1, 2, 3)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_dict(self):
+        d = {'a': 1, 'b': 2}
+        representation = default_repr(d)
+        expected_repr = "{'a': 1, 'b': 2}"
+        self.assertEqual(representation, expected_repr)
+
+    def test_with_private_attribute(self):
+        class WithPrivate:
+            def __init__(self, x):
+                self._x = x
+
+        instance = WithPrivate(5)
+        representation = default_repr(instance)
+        expected_repr = "WithPrivate()"
+        self.assertEqual(representation, expected_repr)
+
+    def test_json_output(self):
+        instance = self.MyClass(1, "test")
+        representation = default_repr(instance, json=True)
+        expected_repr = '{\n  "a": 1,\n  "b": "test"\n}'
+        self.assertEqual(representation, expected_repr)
+
 
 if __name__ == '__main__':
     unittest.main()
