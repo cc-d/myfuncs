@@ -15,8 +15,6 @@ from typing import (
     Generator,
 )
 
-from logfunc import logf
-
 import random
 
 ALPHANUMERIC_CHARS = string.ascii_letters + string.digits
