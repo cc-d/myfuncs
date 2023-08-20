@@ -13,8 +13,10 @@ from typing import (
     Any,
     Iterable,
     Generator,
+    Callable,
+    Optional,
 )
-
+from pprint import pformat
 import random
 
 ALPHANUMERIC_CHARS = string.ascii_letters + string.digits
@@ -212,7 +214,9 @@ def objinfo(obj: Any):
     print_info()
 
 
-def default_repr(obj: Any) -> str:
+def default_repr(
+    obj: Any, transform: Optional[Callable] = None, *args, **kwargs
+) -> str:
     """
     Return a string representation of a custom Python object.
 
@@ -221,6 +225,8 @@ def default_repr(obj: Any) -> str:
 
     Args:
         obj (Any): The input Python object.
+        transform (Optional[Callable]): A function that will return the repr
+            string with modifications. *args/**kwargs will be passed to this function.
 
     Returns:
         str: The string representation of the object.
@@ -240,13 +246,9 @@ def default_repr(obj: Any) -> str:
             return 'float(%s)' % obj
         elif isinstance(obj, str):
             return 'str(%s)' % obj
-        elif isinstance(obj, list):
-            return str(obj)
-        elif isinstance(obj, dict):
-            return str(obj)
         elif isinstance(obj, set):
             return 'set(%s)' % obj
-        elif isinstance(obj, tuple):
+        elif True in {isinstance(obj, t) for t in (list, tuple, dict)}:
             return str(obj)
 
         attributes = ', '.join(
@@ -255,4 +257,6 @@ def default_repr(obj: Any) -> str:
             if not callable(getattr(obj, attr)) and not attr.startswith("_")
         )
 
+    if transform is not None:
+        return transform(self, *args, **kwargs)
     return f"{obj.__class__.__name__}({attributes})"
