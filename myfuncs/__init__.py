@@ -235,7 +235,7 @@ def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = Fa
             if not hasattr(value, '__dict__')
             else f"{key}={default_repr(value)}"
             for key, value in obj.__dict__.items()
-            if not callable(value) and not key.startswith("_")
+            if not callable(value) and not str(key).startswith("_")
         )
         return f"{obj.__class__.__name__}({attributes})"
     else:
@@ -251,9 +251,9 @@ def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = Fa
             return str(obj)
 
         attributes = ', '.join(
-            f"{attr}={repr(getattr(obj, attr, None))}"
+            f"{attr}={getattr(obj, str(attr))}"
             for attr in dir(obj)
-            if not callable(getattr(obj, attr, None)) and not attr.startswith("_")
+            if not callable(getattr(obj, attr)) and not str(attr).startswith("_")
         )
         return f"{obj.__class__.__name__}({attributes})"
 

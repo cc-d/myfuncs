@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='myfuncs',
-    version='1.4.5',
+    version='1.4.6',
     packages=find_packages(),
     install_requires=[],
     author='Cary Carter',
