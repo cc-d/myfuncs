@@ -224,17 +224,11 @@ def recursive_json(obj):
             result[k] = v
     return result
 
-
-def default_repr(
-    obj: Any,
-    transform: Optional[Callable] = None,
-    json: bool = False,
-    *args,
-    **kwargs,
-) -> str:
+def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = False, *args, **kwargs) -> str:
     if json and hasattr(obj, '__dict__'):
         return dumps(dict(recursive_json(obj)), indent=2, *args, **kwargs)
 
+    repr_str = ''
     if hasattr(obj, '__dict__'):
         attributes = ', '.join(
             f"{key}={value!r}"
@@ -243,23 +237,25 @@ def default_repr(
             for key, value in obj.__dict__.items()
             if not callable(value) and not key.startswith("_")
         )
-        return f"{obj.__class__.__name__}({attributes})"
+        repr_str = f"{obj.__class__.__name__}({attributes})"
     else:
         if isinstance(obj, int):
-            return 'int(%s)' % obj
+            repr_str = 'int(%s)' % obj
         elif isinstance(obj, float):
-            return 'float(%s)' % obj
+            repr_str = 'float(%s)' % obj
         elif isinstance(obj, str):
-            return 'str(%s)' % obj
+            repr_str = 'str(%s)' % obj
         elif isinstance(obj, set):
-            return 'set(%s)' % obj
+            repr_str = 'set(%s)' % obj
         elif True in {isinstance(obj, t) for t in (list, tuple, dict)}:
-            return str(obj)
+            repr_str = str(obj)
+        else:
+            attributes = ', '.join(
+                f"{attr}={getattr(obj, attr)!r}"
+                for attr in dir(obj)
+                if not callable(getattr(obj, attr)) and not attr.startswith("_")
+            )
+            repr_str = f"{obj.__class__.__name__}({attributes})"
 
-        attributes = ', '.join(
-            f"{attr}={getattr(obj, attr)!r}"
-            for attr in dir(obj)
-            if not callable(getattr(obj, attr)) and not attr.startswith("_")
-        )
+    return repr_str or str(obj)  # Return the default string representation if all else fails
 
-    return f"{obj.__class__.__name__}({attributes})"
