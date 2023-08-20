@@ -224,11 +224,11 @@ def recursive_json(obj):
             result[k] = v
     return result
 
+
 def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = False, *args, **kwargs) -> str:
     if json and hasattr(obj, '__dict__'):
         return dumps(dict(recursive_json(obj)), indent=2, *args, **kwargs)
 
-    repr_str = ''
     if hasattr(obj, '__dict__'):
         attributes = ', '.join(
             f"{key}={value!r}"
@@ -237,25 +237,25 @@ def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = Fa
             for key, value in obj.__dict__.items()
             if not callable(value) and not key.startswith("_")
         )
-        repr_str = f"{obj.__class__.__name__}({attributes})"
+        return f"{obj.__class__.__name__}({attributes})"
     else:
         if isinstance(obj, int):
-            repr_str = 'int(%s)' % obj
+            return 'int(%s)' % obj
         elif isinstance(obj, float):
-            repr_str = 'float(%s)' % obj
+            return 'float(%s)' % obj
         elif isinstance(obj, str):
-            repr_str = 'str(%s)' % obj
+            return 'str(%s)' % obj
         elif isinstance(obj, set):
-            repr_str = 'set(%s)' % obj
+            return 'set(%s)' % obj
         elif True in {isinstance(obj, t) for t in (list, tuple, dict)}:
-            repr_str = str(obj)
-        else:
-            attributes = ', '.join(
-                f"{attr}={getattr(obj, attr)!r}"
-                for attr in dir(obj)
-                if not callable(getattr(obj, attr)) and not attr.startswith("_")
-            )
-            repr_str = f"{obj.__class__.__name__}({attributes})"
+            return str(obj)
 
-    return repr_str or str(obj)  # Return the default string representation if all else fails
+        attributes = ', '.join(
+            f"{attr}={repr(getattr(obj, attr, None))}"
+            for attr in dir(obj)
+            if not callable(getattr(obj, attr, None)) and not attr.startswith("_")
+        )
+        return f"{obj.__class__.__name__}({attributes})"
 
+    # Catch-all return statement
+    return str(obj)

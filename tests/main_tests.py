@@ -228,5 +228,23 @@ class TestCustomReprFunction(unittest.TestCase):
         self.assertEqual(representation, expected_repr)
 
 
+class TestDefaultReprFunction(unittest.TestCase):
+    class MockCAPTCHA:
+        def __init__(self):
+            self.__dict__ = {
+                '__module__': 'flask_simple_captcha.captcha',
+                '__init__': lambda: None,
+                '__repr__': lambda: None,
+                '__dict__': {},
+                '__weakref__': None,
+                '__doc__': None
+            }
+
+    def test_mock_captcha_repr(self):
+        instance = self.MockCAPTCHA()
+        representation = default_repr(instance)
+        self.assertIsInstance(representation, str)
+
+
 if __name__ == '__main__':
     unittest.main()
