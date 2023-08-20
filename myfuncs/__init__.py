@@ -215,29 +215,32 @@ def objinfo(obj: Any):
     print_info()
 
 
-def recursive_json(obj):
-    result = {}
-    for k, v in obj.__dict__.items():
-        if hasattr(v, '__dict__'):
-            result[k] = recursive_json(v)
-        else:
-            result[k] = v
-    return result
+def default_repr(
+    obj: Any, transform: Optional[Callable] = None, *args, **kwargs
+) -> str:
+    """
+    Return a string representation of a custom Python object.
 
+    This representation is constructed such that the object can be
+    reconstructed from the returned string.
 
-def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = False, *args, **kwargs) -> str:
-    if json and hasattr(obj, '__dict__'):
-        return dumps(dict(recursive_json(obj)), indent=2, *args, **kwargs)
+    Args:
+        obj (Any): The input Python object.
+        transform (Optional[Callable]): A function that will return the repr
+            string with modifications. *args/**kwargs will be passed to this function.
 
+    Returns:
+        str: The string representation of the object.
+    """
+    # If the object has a __dict__ attribute, use that
     if hasattr(obj, '__dict__'):
         attributes = ', '.join(
-            f"{key}={value!r}"
-            if not hasattr(value, '__dict__')
-            else f"{key}={default_repr(value)}"
+            f"{key}={repr(value)}"
             for key, value in obj.__dict__.items()
-            if not callable(value) and not str(key).startswith("_")
+            if not hasattr(value, '__call__')
+            and not str(key).startswith("_")
         )
-        return f"{obj.__class__.__name__}({attributes})"
+    # Otherwise, use dir() to gather potential attributes
     else:
         if isinstance(obj, int):
             return 'int(%s)' % obj
@@ -247,15 +250,15 @@ def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = Fa
             return 'str(%s)' % obj
         elif isinstance(obj, set):
             return 'set(%s)' % obj
-        elif True in {isinstance(obj, t) for t in (list, tuple, dict)}:
+        elif isinstance(obj, (list, tuple, dict)):
             return str(obj)
 
         attributes = ', '.join(
-            f"{attr}={getattr(obj, str(attr))}"
+            f"{attr}={getattr(obj, attr)}"
             for attr in dir(obj)
-            if not callable(getattr(obj, str(attr))) and not str(attr).startswith("_")
+            if not hasattr(obj, '__call__') and not str(attr).startswith('_')
         )
-        return f"{obj.__class__.__name__}({attributes})"
 
-    # Catch-all return statement
-    return str(obj)
+    if transform is not None:
+        return transform(obj, *args, **kwargs)
+    return f"{obj.__class__.__name__}({attributes})"

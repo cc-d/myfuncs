@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='myfuncs',
-    version='1.4.7',
+    version='1.4.8',
     packages=find_packages(),
     install_requires=[],
     author='Cary Carter',
@@ -17,7 +17,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
