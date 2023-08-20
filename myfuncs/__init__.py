@@ -253,7 +253,7 @@ def default_repr(obj: Any, transform: Optional[Callable] = None, json: bool = Fa
         attributes = ', '.join(
             f"{attr}={getattr(obj, str(attr))}"
             for attr in dir(obj)
-            if not callable(getattr(obj, attr)) and not str(attr).startswith("_")
+            if not callable(getattr(obj, str(attr))) and not str(attr).startswith("_")
         )
         return f"{obj.__class__.__name__}({attributes})"
 
