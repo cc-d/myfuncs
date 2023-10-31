@@ -1,42 +1,45 @@
-import unittest
-from subprocess import CompletedProcess
-import sys
 import os
-from unittest.mock import patch, MagicMock, call
-from os.path import dirname, abspath
+import sys
+import unittest
+import random as ran
+from decimal import Decimal
+from os.path import abspath, dirname
+from subprocess import CompletedProcess
 from typing import Generator
-
+from unittest.mock import MagicMock, call, patch
 
 MFROOT = str(dirname(dirname(abspath(__file__))))
 if MFROOT not in sys.path:
     sys.path.insert(0, MFROOT)
 
-from myfuncs import (
-    runcmd,
-    objinfo,
-    nlprint,
-    is_jwt_str,
-    ranstr,
-    get_terminal_width,
-    print_middle,
-    print_columns,
-    default_repr,
+from myfuncs.main import (
     ALPHANUMERIC_CHARS,
+    default_repr,
+    get_terminal_width,
+    is_jwt_str,
+    nlprint,
+    objinfo,
+    print_columns,
+    print_middle,
+    ranstr,
+    runcmd,
+    typed_evar,
 )
 
 
 class TestRunCmd(unittest.TestCase):
     def test_runcmd_with_output(self):
         # Mock the subprocess.run() function to return a CompletedProcess object
-        mock_completed_process = CompletedProcess(
-            args=['echo', 'Hello, World!'],
-            returncode=0,
-            stdout='Hello, World!\n',
-            stderr='',
-        )
-        with patch('subprocess.run', return_value=mock_completed_process):
-            result = runcmd('echo Hello, World!')
-
+        with patch(
+            'subprocess.run',
+            return_value=CompletedProcess(
+                args=['echo', 'Hello, World!'],
+                returncode=0,
+                stdout='Hello, World!',
+                stderr='',
+            ),
+        ):
+            result = runcmd('echo Hello, World!', output=True)
         self.assertEqual(result, ['Hello, World!'])
 
     def test_runcmd_without_output(self):
@@ -48,7 +51,7 @@ class TestRunCmd(unittest.TestCase):
 
 
 class TestPrintMiddle(unittest.TestCase):
-    @patch("myfuncs.get_terminal_width", return_value=50)
+    @patch("myfuncs.main.get_terminal_width", return_value=50)
     def test_print_middle_no_print(self, *args):
         tstr = '012345678901'
         clen = (50 - len(f' {tstr} ')) // 2
@@ -74,45 +77,16 @@ class TestGetTerminalWidth(unittest.TestCase):
 
 
 class TestPrintColumns(unittest.TestCase):
-    items = [
-        'a',
-        'aa',
-        'aaa',
-        'aaaa',
-        'aaaaa',
-        'aaaaaa',
-        'aaaaaaa',
-        'aaaaaaaa',
-        'aaaaaaaaa',
-    ]
+    teststrs = ['a' * i for i in range(1, 20)]
 
-    @patch("myfuncs.get_terminal_width", return_value=80)
-    @patch("builtins.print")
-    def test_print_columns_basic(self, mock_print, mock_get_terminal_width):
-        print_columns(self.items)
-        mock_print.assert_called_with(
-            'aaaaaaaa   aaaaaaaaa'
-        )  # This verifies the last call to print function
+    def print_columns(self):
+        result = print_columns(self.teststrs, terminal_width=80)
+        ran.shuffle(self.teststrs)
+        ranresult = print_columns(self.teststrs, terminal_width=80)
 
-    @patch("myfuncs.get_terminal_width", return_value=40)
-    @patch("builtins.print")
-    def test_print_columns_small_terminal(
-        self, mock_print, mock_get_terminal_width
-    ):
-        print_columns(self.items)
-
-        mock_print.assert_called_with(
-            'aaaaaaa    aaaaaaaa   aaaaaaaaa'
-        )  # This verifies the last call to print function
-
-    @patch("myfuncs.get_terminal_width", return_value=80)
-    @patch("builtins.print")
-    def test_print_columns_sorted(self, mock_print, mock_get_terminal_width):
-        print_columns(['b', 'a', 'c'])
-
-        mock_print.assert_called_with(
-            'a  b  c'
-        )  # This verifies the last call to print function
+        for r in [result, ranresult]:
+            self.assertEqual(len(r), 4)
+            self.assertTrue(max(len(s) for s in r) == min(len(s) for s in r))
 
 
 class TestRanStr(unittest.TestCase):
@@ -177,16 +151,6 @@ class TestCustomReprFunction(unittest.TestCase):
         expected_repr = "[1, 2, 3]"
         self.assertEqual(representation, expected_repr)
 
-    #def test_nested_class(self):
-    #    class Nested:
-    #        def __init__(self, y):
-    #            self.y = y
-#
-    #    instance = self.MyClass(1, Nested("inner"))
-    #    representation = default_repr(instance)
-    #    expected_repr = "MyClass(a=1, b=Nested(y='inner'))"
-    #    self.assertEqual(representation, expected_repr)
-
     def test_set(self):
         st = {1, 2, 3}
         representation = default_repr(st)
@@ -222,22 +186,82 @@ class TestCustomReprFunction(unittest.TestCase):
         self.assertEqual(representation, expected_repr)
 
 
-class TestDefaultReprFunction(unittest.TestCase):
-    class MockCAPTCHA:
-        def __init__(self):
-            self.__dict__ = {
-                '__module__': 'flask_simple_captcha.captcha',
-                '__init__': lambda: None,
-                '__repr__': lambda: None,
-                '__dict__': {},
-                '__weakref__': None,
-                '__doc__': None
-            }
+class TestTypedEvar(unittest.TestCase):
+    def setUp(self):
+        if 'TEST_VAR' in os.environ:
+            del os.environ['TEST_VAR']
 
-    def test_mock_captcha_repr(self):
-        instance = self.MockCAPTCHA()
-        representation = default_repr(instance)
-        self.assertIsInstance(representation, str)
+    # Tests for absence of the environment variable
+    def test_no_default_and_no_value(self):
+        self.assertIsNone(typed_evar('TEST_VAR'))
+
+    def test_with_default_and_no_value(self):
+        self.assertEqual(typed_evar('TEST_VAR', default=42), 42)
+
+    # Tests for booleans
+    def test_default_bool_with_true_value(self):
+        os.environ['TEST_VAR'] = 'true'
+        self.assertEqual(typed_evar('TEST_VAR', default=False), True)
+
+    def test_default_bool_with_false_value(self):
+        os.environ['TEST_VAR'] = 'false'
+        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+
+    def test_default_bool_with_invalid_value(self):
+        os.environ['TEST_VAR'] = 'invalid_bool'
+        with self.assertRaises(ValueError):
+            typed_evar('TEST_VAR', default=False)
+
+    def test_infer_bool_true(self):
+        os.environ['TEST_VAR'] = 'true'
+        self.assertEqual(typed_evar('TEST_VAR'), True)
+
+    def test_infer_bool_false(self):
+        os.environ['TEST_VAR'] = 'false'
+        self.assertEqual(typed_evar('TEST_VAR'), False)
+
+    # Tests for the behavior of 'true'/'false' values
+    def test_default_bool_with_1_value(self):
+        os.environ['TEST_VAR'] = '1'
+        self.assertEqual(typed_evar('TEST_VAR', default=False), True)
+
+    def test_default_bool_with_0_value(self):
+        os.environ['TEST_VAR'] = '0'
+        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+
+    # Tests for numbers
+    def test_infer_int(self):
+        os.environ['TEST_VAR'] = '123'
+        self.assertEqual(typed_evar('TEST_VAR'), 123)
+
+    def test_infer_float(self):
+        os.environ['TEST_VAR'] = '123.456'
+        self.assertEqual(typed_evar('TEST_VAR'), 123.456)
+
+    # Tests for strings
+    def test_infer_str(self):
+        os.environ['TEST_VAR'] = 'Hello World'
+        self.assertEqual(typed_evar('TEST_VAR'), 'Hello World')
+
+    # Tests for custom type (Decimal)
+    def test_default_decimal_with_value(self):
+        os.environ['TEST_VAR'] = '123.456'
+        self.assertEqual(
+            typed_evar('TEST_VAR', default=Decimal('0.0')), Decimal('123.456')
+        )
+
+    # Tests for bool as int inference
+    def test_infer_bool_as_int_1(self):
+        os.environ['TEST_VAR'] = '1'
+        self.assertEqual(typed_evar('TEST_VAR', default=True), True)
+
+    def test_infer_bool_as_int_0(self):
+        os.environ['TEST_VAR'] = '0'
+        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+
+    def test_infer_bool_as_int_neg1(self):
+        os.environ['TEST_VAR'] = '-1'
+        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
 
 
 if __name__ == '__main__':

@@ -10,55 +10,41 @@ You can install `myfuncs` using pip:
 pip install myfuncs
 ```
 
-## Usage
+### Functions Overview
 
+1. **`nlprint`**: Enhanced print function.
 
-The functions in `myfuncs` can be imported as follows:
+2. **`is_jwt`**: Checks if a given string or bytes is a valid JWT (JSON Web Token).
 
-```python
-from myfuncs import runcmd
+3. **`ranstr`**: Generates a random string of specified length and character set.
 
-# Example usage of the runcmd function
-result = runcmd("ls -l")
-print("Output:", result)
-```
+4. **`runcmd`**: Executes a shell command and optionally returns its output.
 
-# Functions
+5. **`get_terminal_width`**: Retrieves the terminal width, defaulting to 80 if undetectable.
 
-## `runcmd()`
+6. **`print_middle`**: Displays a string centered amidst a specified character.
 
-Here, `runcmd` is a utility function that runs shell commands with optional output capture. It accepts additional arguments to customize the command execution process. This function is just one example of the utilities provided by `myfuncs`.
+7. **`print_columns`**: Prints list items in columns based on terminal width.
 
-The `runcmd` function's parameters are:
+8. **`objinfo`**: Presents detailed information about an object, its attributes, methods, and documentation.
 
-- `cmd` (str): The command to be executed.
-- `output` (bool, optional): Specifies whether to capture and return the output of the command. Defaults to True.
-- `*args`: Additional positional arguments passed to `subprocess.run()`.
-- `**kwargs`: Additional keyword arguments passed to `subprocess.run()`.
+9. **`default_repr`**: Provides a standardized string representation of an object.
 
-## `is_jwt_str()`
+10. **`typed_evar`**: Fetches an environment variable with inferred or specified type.
 
-Returns True if a str is a valid encoded jwt string else False
+For more detailed descriptions and usage examples, please refer to the module's source code.
 
-## `nlprint()`
-
-Identical to print but with an additional print()
-
-----
 
 ## Running Tests
 
 The `myfuncs` package includes a test suite to verify the operation of its functions. To run the tests:
 
 ```bash
-python -m unittest tests/*.py
+python -m unittest tests/test_myfuncs.py
 ```
 
-This command executes all Python files (`*.py`) in the `tests` directory. Successful completion signifies that the functions are working as intended.
+The other tests file exists for legacy purposes for legacy code in `funcs.py` (no longer used but kept for backwards compatibility).
 
-## Documentation
-
-In-depth documentation can be accessed in the source code within docstrings. For future developments and detailed examples, please refer to the `myfuncs` [GitHub repository](https://github.com/cc-d/myfuncs).
 
 ## Contributing
 
