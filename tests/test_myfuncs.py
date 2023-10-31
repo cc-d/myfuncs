@@ -8,11 +8,10 @@ from subprocess import CompletedProcess
 from typing import Generator
 from unittest.mock import MagicMock, call, patch
 
-MFROOT = str(dirname(dirname(abspath(__file__))))
-if MFROOT not in sys.path:
-    sys.path.insert(0, MFROOT)
+MFROOT = str(dirname(abspath(__file__)))
+sys.path.append(MFROOT)
 
-from myfuncs.main import (
+from myfuncs import (
     ALPHANUMERIC_CHARS,
     default_repr,
     get_terminal_width,
