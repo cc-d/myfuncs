@@ -26,6 +26,8 @@ from myfuncs.main import (
     typed_evar,
 )
 
+_valid_jwtstr = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidGVzdCJ9.MZZ7UbJRJH9hFRdBUQHpMjU4TK4XRrYP5UxcAkEHvxE'
+
 
 class TestRunCmd(unittest.TestCase):
     def test_runcmd_with_output(self):
@@ -262,6 +264,12 @@ class TestTypedEvar(unittest.TestCase):
     def test_infer_bool_as_int_neg1(self):
         os.environ['TEST_VAR'] = '-1'
         self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+
+    # regression test for is_jwt_str() import
+    def test_is_jwt_str_legacy(self):
+        from .test_myfuncs import is_jwt_str
+
+        self.assertTrue(is_jwt_str(_valid_jwtstr))
 
 
 if __name__ == '__main__':
