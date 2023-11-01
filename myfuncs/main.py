@@ -283,12 +283,14 @@ def typed_evar(name: str, default: Optional[Any] = None):
     """Return an environment variable with an assumed type. Type from
     the default value, if provided, will be prioritized, otherwise
     the type will be inferred in order of: bool, int, float, str.
-    Args:
-        name (str): The name of the environment variable.
-        default (Optional[Any]): The default value of the environment
-            variable. The type of this value will be used to cast the
-            environment variable value. If not provided, the type will
-            be inferred from the environment variable value.
+
+    name: The name of the environment variable.
+    default (Optional[Any]): The default value of the environment
+        variable. The type of this value will be used to cast the
+        environment variable value. If not provided, the type will
+        be inferred from the environment variable value.
+
+    -> Any: The environment variable value with the assumed type.
     """
     varval = os.environ.get(name)
     if varval is None:

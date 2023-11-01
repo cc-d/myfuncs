@@ -8,14 +8,14 @@ from subprocess import CompletedProcess
 from typing import Generator
 from unittest.mock import MagicMock, call, patch
 
-MFROOT = str(dirname(abspath(__file__)))
-sys.path.append(MFROOT)
+sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 from myfuncs import (
     ALPHANUMERIC_CHARS,
     default_repr,
     get_terminal_width,
     is_jwt_str,
+    is_jwt,
     nlprint,
     objinfo,
     print_columns,
@@ -30,7 +30,6 @@ _valid_jwtstr = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidGVzdCJ9.MZZ7U
 
 class TestRunCmd(unittest.TestCase):
     def test_runcmd_with_output(self):
-        # Mock the subprocess.run() function to return a CompletedProcess object
         with patch(
             'subprocess.run',
             return_value=CompletedProcess(
@@ -44,7 +43,6 @@ class TestRunCmd(unittest.TestCase):
         self.assertEqual(result, ['Hello, World!'])
 
     def test_runcmd_without_output(self):
-        # Mock the subprocess.run() function to return None
         with patch('subprocess.run'):
             result = runcmd('echo Hello, World!', output=False)
 
@@ -64,7 +62,6 @@ class TestPrintMiddle(unittest.TestCase):
 
 class TestGetTerminalWidth(unittest.TestCase):
     def test_default_terminal_width(self):
-        # When there's an OSError exception
         with patch('os.get_terminal_size', side_effect=OSError):
             result = get_terminal_width()
         self.assertEqual(result, 80)
@@ -187,87 +184,92 @@ class TestCustomReprFunction(unittest.TestCase):
         self.assertEqual(representation, expected_repr)
 
 
+TVAR = 'TEST_VAR'
+
+
 class TestTypedEvar(unittest.TestCase):
     def setUp(self):
-        if 'TEST_VAR' in os.environ:
-            del os.environ['TEST_VAR']
+        if TVAR in os.environ:
+            del os.environ[TVAR]
 
-    # Tests for absence of the environment variable
     def test_no_default_and_no_value(self):
-        self.assertIsNone(typed_evar('TEST_VAR'))
+        self.assertIsNone(typed_evar(TVAR))
+
+    def test_no_default(self):
+        os.environ[TVAR] = 'Hello World'
+        self.assertEqual(typed_evar(TVAR), 'Hello World')
+
+    def test_no_default_int(self):
+        os.environ[TVAR] = '123'
+        self.assertEqual(typed_evar(TVAR), 123)
+
+    def test_no_default_float(self):
+        os.environ[TVAR] = '123.456'
+        self.assertEqual(typed_evar(TVAR), 123.456)
 
     def test_with_default_and_no_value(self):
-        self.assertEqual(typed_evar('TEST_VAR', default=42), 42)
+        self.assertEqual(typed_evar(TVAR, default=42), 42)
 
-    # Tests for booleans
     def test_default_bool_with_true_value(self):
-        os.environ['TEST_VAR'] = 'true'
-        self.assertEqual(typed_evar('TEST_VAR', default=False), True)
+        os.environ[TVAR] = 'true'
+        self.assertEqual(typed_evar(TVAR, default=False), True)
 
     def test_default_bool_with_false_value(self):
-        os.environ['TEST_VAR'] = 'false'
-        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+        os.environ[TVAR] = 'false'
+        self.assertEqual(typed_evar(TVAR, default=True), False)
 
     def test_default_bool_with_invalid_value(self):
-        os.environ['TEST_VAR'] = 'invalid_bool'
+        os.environ[TVAR] = 'invalid_bool'
         with self.assertRaises(ValueError):
-            typed_evar('TEST_VAR', default=False)
+            typed_evar(TVAR, default=False)
 
     def test_infer_bool_true(self):
-        os.environ['TEST_VAR'] = 'true'
-        self.assertEqual(typed_evar('TEST_VAR'), True)
+        os.environ[TVAR] = 'true'
+        self.assertEqual(typed_evar(TVAR), True)
 
     def test_infer_bool_false(self):
-        os.environ['TEST_VAR'] = 'false'
-        self.assertEqual(typed_evar('TEST_VAR'), False)
+        os.environ[TVAR] = 'false'
+        self.assertEqual(typed_evar(TVAR), False)
 
-    # Tests for the behavior of 'true'/'false' values
     def test_default_bool_with_1_value(self):
-        os.environ['TEST_VAR'] = '1'
-        self.assertEqual(typed_evar('TEST_VAR', default=False), True)
+        os.environ[TVAR] = '1'
+        self.assertEqual(typed_evar(TVAR, default=False), True)
 
     def test_default_bool_with_0_value(self):
-        os.environ['TEST_VAR'] = '0'
-        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+        os.environ[TVAR] = '0'
+        self.assertEqual(typed_evar(TVAR, default=True), False)
 
-    # Tests for numbers
     def test_infer_int(self):
-        os.environ['TEST_VAR'] = '123'
-        self.assertEqual(typed_evar('TEST_VAR'), 123)
+        os.environ[TVAR] = '123'
+        self.assertEqual(typed_evar(TVAR), 123)
 
     def test_infer_float(self):
-        os.environ['TEST_VAR'] = '123.456'
-        self.assertEqual(typed_evar('TEST_VAR'), 123.456)
+        os.environ[TVAR] = '123.456'
+        self.assertEqual(typed_evar(TVAR), 123.456)
 
-    # Tests for strings
     def test_infer_str(self):
-        os.environ['TEST_VAR'] = 'Hello World'
-        self.assertEqual(typed_evar('TEST_VAR'), 'Hello World')
+        os.environ[TVAR] = 'Hello World'
+        self.assertEqual(typed_evar(TVAR), 'Hello World')
 
-    # Tests for custom type (Decimal)
     def test_default_decimal_with_value(self):
-        os.environ['TEST_VAR'] = '123.456'
+        os.environ[TVAR] = '123.456'
         self.assertEqual(
-            typed_evar('TEST_VAR', default=Decimal('0.0')), Decimal('123.456')
+            typed_evar(TVAR, default=Decimal('0.0')), Decimal('123.456')
         )
 
-    # Tests for bool as int inference
     def test_infer_bool_as_int_1(self):
-        os.environ['TEST_VAR'] = '1'
-        self.assertEqual(typed_evar('TEST_VAR', default=True), True)
+        os.environ[TVAR] = '1'
+        self.assertEqual(typed_evar(TVAR, default=True), True)
 
     def test_infer_bool_as_int_0(self):
-        os.environ['TEST_VAR'] = '0'
-        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+        os.environ[TVAR] = '0'
+        self.assertEqual(typed_evar(TVAR, default=True), False)
 
     def test_infer_bool_as_int_neg1(self):
-        os.environ['TEST_VAR'] = '-1'
-        self.assertEqual(typed_evar('TEST_VAR', default=True), False)
+        os.environ[TVAR] = '-1'
+        self.assertEqual(typed_evar(TVAR, default=True), False)
 
-    # regression test for is_jwt_str() import
     def test_is_jwt_str_legacy(self):
-        from .test_myfuncs import is_jwt_str
-
         self.assertTrue(is_jwt_str(_valid_jwtstr))
 
 

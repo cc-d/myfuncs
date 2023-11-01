@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run all tests",
+      "type": "python",
+      "request": "launch",
+      "module": "unittest",
+      "args": ["-v", "tests.test_myfuncs"]
+    }
+  ]
+}
