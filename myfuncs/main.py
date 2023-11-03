@@ -4,6 +4,7 @@ import os
 import platform
 import random
 import re
+import shlex
 import string
 import subprocess as subproc
 import sys
@@ -99,29 +100,20 @@ def runcmd(
 ) -> Optional[List[str]]:
     """Runs a single command in the shell.
     Args:
-        cmd (str): Str that will be treated as if pasted into shell
+        cmd: escaped str that will be treated as if pasted into shell
         output (bool) = True:
             equivalent to check=True text=True capture_output=True
     Returns:
         List[str] | None: output of cmd if output=True, None otherwise
     """
+    cmd = shlex.split(cmd)
     if output:
         return subproc.run(
-            cmd.split(),
-            check=True,
-            text=True,
-            capture_output=True,
-            *args,
-            **kwargs,
+            cmd, check=True, text=True, capture_output=True, *args, **kwargs
         ).stdout.splitlines()
     else:
         subproc.run(
-            cmd.split(),
-            check=False,
-            text=False,
-            capture_output=False,
-            *args,
-            **kwargs,
+            cmd, check=False, text=False, capture_output=False, *args, **kwargs
         )
 
 
@@ -284,13 +276,11 @@ def typed_evar(name: str, default: Optional[Any] = None):
     the default value, if provided, will be prioritized, otherwise
     the type will be inferred in order of: bool, int, float, str.
 
-    name: The name of the environment variable.
-    default (Optional[Any]): The default value of the environment
-        variable. The type of this value will be used to cast the
-        environment variable value. If not provided, the type will
-        be inferred from the environment variable value.
+    (CURDAY, 25) -> 25
+    (CURDAY, 25.0) -> 25.0
+    (CURDAY, '25.0') -> '25.0'
+    (CURDAY, None) -> '25'
 
-    -> Any: The environment variable value with the assumed type.
     """
     varval = os.environ.get(name)
     if varval is None:

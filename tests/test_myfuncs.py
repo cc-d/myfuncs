@@ -48,6 +48,18 @@ class TestRunCmd(unittest.TestCase):
 
         self.assertIsNone(result)
 
+    def test_runcmd_with_special_characters(self):
+        special_cmd = "echo \"Hello\" && touch /tmp/evil.txt"
+        with patch('subprocess.run') as mock_run:
+            runcmd(special_cmd, output=False)
+
+        mock_run.assert_called_once_with(
+            ['echo', 'Hello', '&&', 'touch', '/tmp/evil.txt'],
+            check=False,
+            text=False,
+            capture_output=False,
+        )
+
 
 class TestPrintMiddle(unittest.TestCase):
     @patch("myfuncs.main.get_terminal_width", return_value=50)
