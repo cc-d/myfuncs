@@ -227,15 +227,6 @@ def objinfo(obj: Any) -> None:
     nlprint('-' * terminal_width)
 
 
-DEFAULT_PFORMAT_KWARGS = {
-    'indent': 1,
-    'width': 80,
-    'depth': None,
-    'compact': True,
-    'sort_dicts': True,
-}
-
-
 def safe_pformat(*args, **kwargs) -> str:
     """Acts identical to pformat but removes kwargs that
     arent available in older python versions
@@ -257,16 +248,34 @@ def safe_pformat(*args, **kwargs) -> str:
     return pfstr
 
 
-def safe_repr(obj: Any, *args, **kwargs) -> str:
-    """identical to repr but handles excepts and returns
-    the str of the object if an exception occurs trying
-    to get the repr
+class NotPrintableError(Exception):
+    """Custom exception to be raised when both repr and str fail"""
+
+    def __init__(self, obj, e_repr, e_str):
+        self.obj_type = type(obj).__name__
+        self.repr_exception = e_repr
+        self.str_exception = e_str
+        self.message = (
+            "<NotPrintable {obj_type} object repr_exception={e_repr!r} "
+            "str_exception={e_str!r}>".format(
+                obj_type=self.obj_type, e_repr=e_repr, e_str=e_str
+            )
+        )
+        super().__init__(self.message)
+
+
+def safe_repr(obj):
+    """Try and returns an objects repr, then str if err, then NotPrintableError
+    error message if both fail
     """
     try:
-        return repr(obj, *args, **kwargs)
-    except Exception as e:
-        print(e)
-        return str(obj)
+        return repr(obj)
+    except Exception as e_repr:
+        try:
+            return str(obj)
+        except Exception as e_str:
+            err = NotPrintableError(obj, e_repr, e_str)
+            return err.message
 
 
 def default_repr(

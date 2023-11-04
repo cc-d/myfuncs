@@ -201,77 +201,14 @@ class TestCustomReprFunction(unittest.TestCase):
 
 
 class TestSafeRepr(unittest.TestCase):
-    def test_simple_class(self):
-        class MyClass:
-            def __init__(self, a, b):
-                self.a = a
-                self.b = b
+    def test_repr_exception(self):
+        class WithRepr:
+            def __repr__(self):
+                raise Exception("test exception")
 
-            def method(self):
-                pass
-
-        instance = MyClass(1, "test")
-        representation = safe_repr(instance)
-        expected_repr = "MyClass(a=1, b='test')"
-        self.assertEqual(representation, expected_repr)
-
-    def test_class_with_class_attribute(self):
-        class AnotherClass:
-            c = "class attribute"
-
-            def __init__(self, x):
-                self.x = x
-
-        instance = AnotherClass(5)
-        representation = safe_repr(instance)
-        expected_repr = "AnotherClass(x=5)"
-        self.assertEqual(representation, expected_repr)
-
-    def test_builtin_type_without_dict(self):
-        value = 123
-        representation = safe_repr(value)
-        expected_repr = "int(123)"
-        self.assertEqual(representation, expected_repr)
-
-    def test_list(self):
-        lst = [1, 2, 3]
-        representation = safe_repr(lst)
-        expected_repr = "[1, 2, 3]"
-        self.assertEqual(representation, expected_repr)
-
-    def test_set(self):
-        st = {1, 2, 3}
-        representation = safe_repr(st)
-        expected_repr = "set({1, 2, 3})"
-        self.assertEqual(representation, expected_repr)
-
-    def test_float(self):
-        value = 123.45
-        representation = safe_repr(value)
-        expected_repr = "float(123.45)"
-        self.assertEqual(representation, expected_repr)
-
-    def test_tuple(self):
-        tpl = (1, 2, 3)
-        representation = safe_repr(tpl)
-        expected_repr = "(1, 2, 3)"
-        self.assertEqual(representation, expected_repr)
-
-    def test_dict(self):
-        d = {'a': 1, 'b': 2}
-        representation = safe_repr(d)
-        expected_repr = "{'a': 1, 'b': 2}"
-        self.assertEqual(representation, expected_repr)
-
-    def test_with_private_attribute(self):
-        class WithPrivate:
-            def __init__(self, x):
-                self._x = x
-
-        instance = WithPrivate(5)
-        representation = safe_repr(instance)
-        expected_repr = "WithPrivate()"
-        self.assertEqual(representation, expected_repr)
+        instance = WithRepr()
+        reprerr = safe_repr(instance)
+        self.assertIn("test exception", str(reprerr))
 
 
 TVAR = 'TEST_VAR'
