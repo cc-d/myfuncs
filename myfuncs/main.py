@@ -8,6 +8,7 @@ import shlex
 import string
 import subprocess as subproc
 import sys
+from pprint import pformat
 from typing import (
     Any,
     Callable,
@@ -226,6 +227,48 @@ def objinfo(obj: Any) -> None:
     nlprint('-' * terminal_width)
 
 
+DEFAULT_PFORMAT_KWARGS = {
+    'indent': 1,
+    'width': 80,
+    'depth': None,
+    'compact': True,
+    'sort_dicts': True,
+}
+
+
+def safe_pformat(*args, **kwargs) -> str:
+    """Acts identical to pformat but removes kwargs that
+    arent available in older python versions
+    """
+    if kwargs is None:
+        kwargs = {}
+
+    del_kwargs = []
+    if sys.version_info < (3, 8):
+        del_kwargs.append('compact')
+    elif sys.version_info < (3, 7):
+        del_kwargs.append('sort_dicts')
+
+    for k in kwargs:
+        if k in del_kwargs:
+            del kwargs[k]
+
+    pfstr = pformat(*args, **kwargs)
+    return pfstr
+
+
+def safe_repr(obj: Any, *args, **kwargs) -> str:
+    """identical to repr but handles excepts and returns
+    the str of the object if an exception occurs trying
+    to get the repr
+    """
+    try:
+        return repr(obj, *args, **kwargs)
+    except Exception as e:
+        print(e)
+        return str(obj)
+
+
 def default_repr(
     obj: Any, transform: Optional[Callable] = None, *args, **kwargs
 ) -> str:
@@ -243,7 +286,7 @@ def default_repr(
     # If the object has a __dict__ attribute, use that
     if hasattr(obj, '__dict__'):
         attributes = ', '.join(
-            "{}={}".format(key, repr(value))
+            "{}={}".format(key, safe_repr(value))
             for key, value in obj.__dict__.items()
             if not hasattr(value, '__call__') and not str(key).startswith("_")
         )
@@ -261,7 +304,7 @@ def default_repr(
             return str(obj)
 
         attributes = ', '.join(
-            "{}={}".format(attr, getattr(obj, attr))
+            "{}={}".format(attr, safe_repr(getattr(obj, attr)))
             for attr in dir(obj)
             if not hasattr(obj, '__call__') and not str(attr).startswith('_')
         )
@@ -307,8 +350,8 @@ def typed_evar(name: str, default: Optional[Any] = None):
             pass
 
     # otherwise assume type using a few simple types
-    if varval.lower() in ('true', 'false'):
-        return varval.lower() == 'true'
+    if varval.casefold() in ('true', 'false'):
+        return varval.casefold() == 'true'
 
     for vartype in (int, float):
         try:

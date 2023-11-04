@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, call, patch
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
-from myfuncs import (
+from myfuncs.main import (
     ALPHANUMERIC_CHARS,
     default_repr,
     get_terminal_width,
@@ -23,9 +23,13 @@ from myfuncs import (
     ranstr,
     runcmd,
     typed_evar,
+    safe_repr,
 )
 
-_valid_jwtstr = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidGVzdCJ9.MZZ7UbJRJH9hFRdBUQHpMjU4TK4XRrYP5UxcAkEHvxE'
+_valid_jwtstr = (
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidGVzdCJ9'
+    '.MZZ7UbJRJH9hFRdBUQHpMjU4TK4XRrYP5UxcAkEHvxE'
+)
 
 
 class TestRunCmd(unittest.TestCase):
@@ -192,6 +196,80 @@ class TestCustomReprFunction(unittest.TestCase):
 
         instance = WithPrivate(5)
         representation = default_repr(instance)
+        expected_repr = "WithPrivate()"
+        self.assertEqual(representation, expected_repr)
+
+
+class TestSafeRepr(unittest.TestCase):
+    def test_simple_class(self):
+        class MyClass:
+            def __init__(self, a, b):
+                self.a = a
+                self.b = b
+
+            def method(self):
+                pass
+
+        instance = MyClass(1, "test")
+        representation = safe_repr(instance)
+        expected_repr = "MyClass(a=1, b='test')"
+        self.assertEqual(representation, expected_repr)
+
+    def test_class_with_class_attribute(self):
+        class AnotherClass:
+            c = "class attribute"
+
+            def __init__(self, x):
+                self.x = x
+
+        instance = AnotherClass(5)
+        representation = safe_repr(instance)
+        expected_repr = "AnotherClass(x=5)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_builtin_type_without_dict(self):
+        value = 123
+        representation = safe_repr(value)
+        expected_repr = "int(123)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_list(self):
+        lst = [1, 2, 3]
+        representation = safe_repr(lst)
+        expected_repr = "[1, 2, 3]"
+        self.assertEqual(representation, expected_repr)
+
+    def test_set(self):
+        st = {1, 2, 3}
+        representation = safe_repr(st)
+        expected_repr = "set({1, 2, 3})"
+        self.assertEqual(representation, expected_repr)
+
+    def test_float(self):
+        value = 123.45
+        representation = safe_repr(value)
+        expected_repr = "float(123.45)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_tuple(self):
+        tpl = (1, 2, 3)
+        representation = safe_repr(tpl)
+        expected_repr = "(1, 2, 3)"
+        self.assertEqual(representation, expected_repr)
+
+    def test_dict(self):
+        d = {'a': 1, 'b': 2}
+        representation = safe_repr(d)
+        expected_repr = "{'a': 1, 'b': 2}"
+        self.assertEqual(representation, expected_repr)
+
+    def test_with_private_attribute(self):
+        class WithPrivate:
+            def __init__(self, x):
+                self._x = x
+
+        instance = WithPrivate(5)
+        representation = safe_repr(instance)
         expected_repr = "WithPrivate()"
         self.assertEqual(representation, expected_repr)
 
